@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"os"
 	"time"
 
@@ -32,11 +32,22 @@ func main() {
 	bucket := client.Bucket("atateno-notes")
 	object := bucket.Object(time.Now().Format(dateFmt))
 
-	w := object.NewWriter(ctx)
+	r, err := object.NewReader(ctx)
+	if err == storage.ErrObjectNotExist {
+		edit([]byte(""))
+	} else if err == nil {
+		initial, err := ioutil.ReadAll(r)
+		if err != nil {
+			fmt.Printf("Failed to read memo: %v", err)
+		}
 
-	fmt.Fprintln(w, "Hello, World!")
-
-	if err := w.Close(); err != nil {
-		log.Fatalf("Failed to close bucket writer: %v", err)
+		edit(initial)
+	} else {
+		fmt.Printf("Failed to read memo: %v", err)
+		os.Exit(1)
 	}
+}
+
+func edit(initial []byte) []byte {
+	return initial
 }
