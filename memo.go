@@ -1,53 +1,56 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"time"
-
-	"cloud.google.com/go/storage"
-	"github.com/katsuya94/memo/auth"
-	"google.golang.org/api/option"
 )
 
-const dateFmt = "2006-01-02"
+type Command interface {
+	Run(...string) error
+	Usage() string
+	Description() string
+}
+
+type UsageError struct {
+	cmd Command
+}
+
+func (err *UsageError) Error() string {
+	return err.cmd.Usage()
+}
 
 func main() {
-	ctx := context.Background()
+	var (
+		cmd  Command
+		args []string
+	)
 
-	tokenSource, err := auth.TokenSourceFromConfig(ctx)
-	if err != nil {
-		fmt.Printf("Failed to get OAuth token: %v", err)
-		os.Exit(1)
-	}
-
-	client, err := storage.NewClient(ctx, option.WithTokenSource(tokenSource))
-	if err != nil {
-		fmt.Printf("Failed to create client: %v", err)
-		os.Exit(1)
-	}
-
-	bucket := client.Bucket("atateno-notes")
-	object := bucket.Object(time.Now().Format(dateFmt))
-
-	r, err := object.NewReader(ctx)
-	if err == storage.ErrObjectNotExist {
-		edit([]byte(""))
-	} else if err == nil {
-		initial, err := ioutil.ReadAll(r)
-		if err != nil {
-			fmt.Printf("Failed to read memo: %v", err)
-		}
-
-		edit(initial)
+	if len(os.Args) < 2 {
+		cmd = &OpenCmd{}
 	} else {
-		fmt.Printf("Failed to read memo: %v", err)
+		cmd = resolveCmd(os.Args[1])
+		if cmd == nil {
+			cmd = &OpenCmd{}
+			args = os.Args[1:]
+		} else {
+			args = os.Args[2:]
+		}
+	}
+
+	err := cmd.Run(args...)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func edit(initial []byte) []byte {
-	return initial
+func resolveCmd(name string) Command {
+	switch name {
+	case "open":
+		return &OpenCmd{}
+	case "help":
+		return &HelpCmd{}
+	}
+
+	return nil
 }
