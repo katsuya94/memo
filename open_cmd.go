@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type OpenCmd struct{}
+type openCmd struct{}
 
 var dateLayouts = []string{
 	"2006-1-2",
@@ -26,22 +26,23 @@ var dateLayouts = []string{
 	"January 2",
 }
 
-func (cmd *OpenCmd) Run(args ...string) error {
+func (cmd *openCmd) run(args ...string) error {
 	var (
-		date time.Time
-		t    time.Time = time.Now()
+		d date
+		t = time.Now()
 	)
 
 	if len(args) == 0 {
-		date = normalizedDate(t.Year(), t.Month(), t.Day())
+		d = newDate(t.Year(), t.Month(), t.Day())
 	} else {
 		var (
+			dateString = strings.Join(args, " ")
+			given      time.Time
 			err        error
-			dateString string = strings.Join(args, " ")
 		)
 
 		for _, layout := range dateLayouts {
-			date, err = time.Parse(layout, dateString)
+			given, err = time.Parse(layout, dateString)
 			if err == nil {
 				break
 			}
@@ -51,27 +52,23 @@ func (cmd *OpenCmd) Run(args ...string) error {
 			return fmt.Errorf("Invalid date format: %v", dateString)
 		}
 
-		if date.Year() == 0 {
-			date = normalizedDate(t.Year(), date.Month(), date.Day())
+		if given.Year() == 0 {
+			d = newDate(t.Year(), given.Month(), given.Day())
+		} else {
+			d = newDate(given.Year(), given.Month(), given.Day())
 		}
 	}
 
-	fmt.Printf("%v\n", date)
-
-	return nil
+	return open(d)
 }
 
-func normalizedDate(year int, month time.Month, day int) time.Time {
-	return time.Date(year, month, day, 0, 0, 0, 0, &time.Location{})
-}
-
-func (*OpenCmd) Usage() string {
+func (*openCmd) usage() string {
 	return `Usage: memo open [date]
 
    Opens the entry for a given date, but opens read-only if the day is in the past. The default day is today.
 `
 }
 
-func (*OpenCmd) Description() string {
+func (*openCmd) description() string {
 	return "open (default)   Opens the entry for a given date"
 }

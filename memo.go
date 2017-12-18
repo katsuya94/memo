@@ -5,51 +5,37 @@ import (
 	"os"
 )
 
-type Command interface {
-	Run(...string) error
-	Usage() string
-	Description() string
-}
-
-type UsageError struct {
-	cmd Command
-}
-
-func (err *UsageError) Error() string {
-	return err.cmd.Usage()
-}
-
 func main() {
 	var (
-		cmd  Command
+		cmd  command
 		args []string
 	)
 
 	if len(os.Args) < 2 {
-		cmd = &OpenCmd{}
+		cmd = &openCmd{}
 	} else {
 		cmd = resolveCmd(os.Args[1])
 		if cmd == nil {
-			cmd = &OpenCmd{}
+			cmd = &openCmd{}
 			args = os.Args[1:]
 		} else {
 			args = os.Args[2:]
 		}
 	}
 
-	err := cmd.Run(args...)
+	err := cmd.run(args...)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-func resolveCmd(name string) Command {
+func resolveCmd(name string) command {
 	switch name {
 	case "open":
-		return &OpenCmd{}
+		return &openCmd{}
 	case "help":
-		return &HelpCmd{}
+		return &helpCmd{}
 	}
 
 	return nil

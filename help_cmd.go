@@ -5,20 +5,20 @@ import (
 	"strings"
 )
 
-type HelpCmd struct{}
+type helpCmd struct{}
 
-var commands = []Command{
-	&OpenCmd{},
-	&HelpCmd{},
+var commands = []command{
+	&openCmd{},
+	&helpCmd{},
 }
 
-func (cmd *HelpCmd) Run(args ...string) error {
+func (cmd *helpCmd) run(args ...string) error {
 	switch len(args) {
 	case 0:
 		subcommandDescriptions := make([]string, len(commands))
 
 		for i, cmd := range commands {
-			subcommandDescriptions[i] = cmd.Description()
+			subcommandDescriptions[i] = cmd.description()
 		}
 
 		subcommandsDescription := strings.Join(
@@ -37,21 +37,20 @@ Subcommands:
 			return fmt.Errorf("Unknown subcommand: %v", args[0])
 		}
 
-		fmt.Print(cmd.Usage())
+		fmt.Println(cmd.usage())
 	default:
-		return &UsageError{cmd}
+		return &usageError{cmd}
 	}
 
 	return nil
 }
 
-func (*HelpCmd) Usage() string {
+func (*helpCmd) usage() string {
 	return `Usage: memo help [subcommand]
 
-   Shows help message, including all subcommands. Shows help message for the given subcommand, if specified.
-`
+   Shows help message, including all subcommands. Shows help message for the given subcommand, if specified.`
 }
 
-func (*HelpCmd) Description() string {
+func (*helpCmd) description() string {
 	return "help             Shows this help message or help for subcommands"
 }
