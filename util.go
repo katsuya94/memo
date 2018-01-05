@@ -32,10 +32,16 @@ type command interface {
 	description() string
 }
 
-type usageError struct {
+type errUsage struct {
 	cmd command
 }
 
-func (err usageError) Error() string {
+func (err errUsage) Error() string {
 	return err.cmd.usage()
+}
+
+type errNotFound struct{}
+
+func (errNotFound) Error() string {
+	return "memo not found"
 }

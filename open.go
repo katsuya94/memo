@@ -1,59 +1,84 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
-)
-
-var (
-	errNotFound = errors.New("Memo not found")
+	"strings"
 )
 
 func open(d date) error {
-	fmt.Println(d)
-
 	storage := storage(&localStorage{})
 
-	raw, err := storage.retrive(d)
+	contents, err := storage.retrive(d)
 
-	fmt.Println(raw)
-
-	if err == nil {
-		return edit()
-	} else if err == errNotFound {
-		return edit()
-	} else {
-		return err
+	_, ok := err.(errNotFound)
+	if ok {
+		contents, err = blank(d)
 	}
-}
 
-type storage interface {
-	retrive(date) (string, error)
-	store(date, string) error
-}
-
-type localStorage struct{}
-
-func (*localStorage) retrive(d date) (string, error) {
-	return "", errNotFound
-}
-
-func (*localStorage) store(d date, raw string) error {
-	return nil
-}
-
-func edit() error {
-	f, err := ioutil.TempFile("", "memo")
 	if err != nil {
 		return err
 	}
 
-	cmd := exec.Command("vim", f.Name())
+	contents, err = edit(contents)
+	if err != nil {
+		return err
+	}
+
+	return storage.store(d, contents)
+}
+
+var editorEnvVars = []string{"VISUAL", "EDITOR"}
+
+func edit(contents string) (string, error) {
+	f, err := ioutil.TempFile("", "memo")
+	if err != nil {
+		return contents, err
+	}
+
+	filename := f.Name()
+	f.Close()
+
+	err = ioutil.WriteFile(filename, []byte(contents), 0)
+	if err != nil {
+		return contents, err
+	}
+
+	editorCommand := ""
+
+	for _, envVar := range editorEnvVars {
+		if editorCommand != "" {
+			break
+		}
+		editorCommand = os.Getenv(envVar)
+	}
+
+	if editorCommand == "" {
+		return contents, fmt.Errorf(
+			"open: no editor specified in $%v",
+			strings.Join(editorEnvVars, ", $"),
+		)
+	}
+
+	cmd := exec.Command(editorCommand, f.Name())
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 
-	return cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return contents, err
+	}
+
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return contents, err
+	}
+
+	return string(b), nil
+}
+
+func blank(d date) (string, error) {
+	return "placeholder", nil
 }

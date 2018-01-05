@@ -39,7 +39,7 @@ Subcommands:
 
 		fmt.Println(cmd.usage())
 	default:
-		return &usageError{cmd}
+		return &errUsage{cmd}
 	}
 
 	return nil
