@@ -13,8 +13,7 @@ func open(d date) error {
 
 	contents, err := storage.retrive(d)
 
-	_, ok := err.(errNotFound)
-	if ok {
+	if _, ok := err.(errNotFound); ok {
 		contents, err = blank(d)
 	}
 
@@ -26,6 +25,8 @@ func open(d date) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(parse(contents))
 
 	return storage.store(d, contents)
 }

@@ -15,7 +15,18 @@ type storage interface {
 type localStorage struct{}
 
 func (*localStorage) retrive(d date) (string, error) {
-	return "", errNotFound{}
+	dir, err := memoDir()
+	if err != nil {
+		return "", err
+	}
+
+	path := path.Join(dir, d.String())
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return "", errNotFound{}
+	}
+
+	bytes, err := ioutil.ReadFile(path)
+	return string(bytes), err
 }
 
 func (*localStorage) store(d date, contents string) error {
