@@ -3,7 +3,9 @@
 ## TODO
 
 [x] Save memo files in a subdirectory of home
+[x] Parse memo files as tagged sections
 [ ] Sync memo files to google cloud storage
-[ ] Parse memo files as tagged sections
 [ ] Search for all sections with a given tag
-[ ] Add support for persistent sections
+[ ] Prepopulate memos with named sections from previous memos
+[ ] Allow configuration via ~/.memo/config
+[ ] Allow multiple profiles
