@@ -14,3 +14,4 @@
 [ ] Write interface and package document
 [ ] Refactor interfaces and packages
 [ ] Write tests
+[ ] Remove temp files after use
