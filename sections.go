@@ -6,9 +6,8 @@ import (
 )
 
 type sectionInfo struct {
-	tags       []string
-	name       string
-	persistent bool
+	tags []string
+	name string
 }
 
 type section struct {
@@ -16,7 +15,7 @@ type section struct {
 	body string
 }
 
-func parse(contents string) []section {
+func parse(contents string) ([]section, error) {
 	lines := strings.Split(contents, "\n")
 	sections := []section{}
 
@@ -28,7 +27,11 @@ func parse(contents string) []section {
 	for true {
 		for ; j < len(lines); j++ {
 			var ok bool
-			nextInfo, ok = sectionHeader(lines[j])
+			var err error
+			nextInfo, ok, err = sectionHeader(lines[j])
+			if err != nil {
+				return []section{}, err
+			}
 			if ok {
 				break
 			}
@@ -49,15 +52,41 @@ func parse(contents string) []section {
 		i = j
 	}
 
-	return sections
+	if sections[0].body == "" {
+		return sections[1:], nil
+	}
+
+	return sections, nil
 }
 
-var sectionHeaderRegexp = regexp.MustCompile(`^ {0,3}(\*{3}|-{3}|_{3})`)
+var (
+	sectionHeaderRegexp     = regexp.MustCompile(`^ {0,3}(\*{3}|-{3}|_{3})`)
+	sectionHeaderInfoRegexp = regexp.MustCompile(`^ {0,3}(\*{3}|-{3}|_{3}) *([0-9a-zA-Z-]+|(\+[0-9a-zA-Z-]+ *)*) *$`)
+)
 
-func sectionHeader(line string) (sectionInfo, bool) {
+func sectionHeader(line string) (sectionInfo, bool, error) {
+	var info sectionInfo
+
 	if sectionHeaderRegexp.MatchString(line) {
-		return sectionInfo{}, true
-	} else {
-		return sectionInfo{}, false
+		if ok := sectionHeaderInfoRegexp.MatchString(line); !ok {
+			return info, true, errMalformedSectionHeader{line}
+		}
+
+		match := sectionHeaderInfoRegexp.FindStringSubmatch(line)
+
+		if match[2][0] == '+' {
+			tokens := strings.Split(match[2], " ")
+			for _, token := range tokens {
+				if token != "" {
+					info.tags = append(info.tags, token[1:])
+				}
+			}
+		} else {
+			info.name = match[2]
+		}
+
+		return info, true, nil
 	}
+
+	return info, false, nil
 }

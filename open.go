@@ -26,7 +26,32 @@ func open(d date) error {
 		return err
 	}
 
-	fmt.Println(parse(contents))
+	_, err = parse(contents)
+
+	for err != nil {
+		_, ok := err.(errMalformedSectionHeader)
+		if !ok {
+			break
+		}
+
+		fmt.Println(err.Error())
+		discard, err := confirm(false, "Discard changes?")
+		if err != nil {
+			return err
+		}
+		if discard {
+			return nil
+		}
+
+		contents, err = edit(contents)
+		if err != nil {
+			return err
+		}
+		_, err = parse(contents)
+	}
+	if err != nil {
+		return err
+	}
 
 	return storage.store(d, contents)
 }
@@ -81,5 +106,5 @@ func edit(contents string) (string, error) {
 }
 
 func blank(d date) (string, error) {
-	return "placeholder", nil
+	return "---\n", nil
 }
