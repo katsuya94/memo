@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -89,4 +90,15 @@ func sectionHeader(line string) (sectionInfo, bool, error) {
 	}
 
 	return info, false, nil
+}
+
+func dump(section section) string {
+	if section.info.name != "" {
+		return fmt.Sprintf("--- %v\n%v\n", section.info.name, section.body)
+	} else if len(section.info.tags) > 0 {
+		tagsWithoutLeadingPlus := strings.Join(section.info.tags, " +")
+		return fmt.Sprintf("--- +%v\n%v\n", tagsWithoutLeadingPlus, section.body)
+	} else {
+		return fmt.Sprintf("---\n%v\n", section.body)
+	}
 }

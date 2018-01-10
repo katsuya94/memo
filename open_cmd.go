@@ -28,12 +28,13 @@ var dateLayouts = []string{
 
 func (cmd *openCmd) run(args ...string) error {
 	var (
-		d date
-		t = time.Now()
+		d     date
+		t     = time.Now()
+		today = newDate(t.Year(), t.Month(), t.Day())
 	)
 
 	if len(args) == 0 {
-		d = newDate(t.Year(), t.Month(), t.Day())
+		d = today
 	} else {
 		var (
 			dateString = strings.Join(args, " ")
@@ -59,7 +60,7 @@ func (cmd *openCmd) run(args ...string) error {
 		}
 	}
 
-	return open(d)
+	return open(d, today)
 }
 
 func (*openCmd) usage() string {

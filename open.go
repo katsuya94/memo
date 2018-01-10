@@ -3,20 +3,67 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
+	"time"
 )
 
-func open(d date) error {
-	storage := storage(&localStorage{})
-
-	contents, err := storage.retrive(d)
-
-	if _, ok := err.(errNotFound); ok {
-		contents, err = blank(d)
+func open(d, today date) error {
+	if time.Time(d).After(time.Time(today)) {
+		return fmt.Errorf("open: can't open future memo")
 	}
 
+	storage := storage(&localStorage{})
+
+	contents, err := storage.retrieve(d)
+
+	if time.Time(d).Before(time.Time(today)) {
+		if err != nil {
+			return err
+		}
+
+		return read(contents)
+	}
+
+	if _, ok := err.(errNotFound); ok {
+		var (
+			mostRecentDate     date
+			mostRecentContents string
+			sections           []section
+		)
+
+		mostRecentDate, err = storage.mostRecent()
+		if err != nil {
+			return err
+		}
+
+		mostRecentContents, err = storage.retrieve(mostRecentDate)
+		if err != nil {
+			return err
+		}
+
+		sections, err = parse(mostRecentContents)
+		if err != nil {
+			return err
+		}
+
+		namedSections := []section{}
+		for _, section := range sections {
+			if section.info.name != "" {
+				namedSections = append(namedSections, section)
+			}
+		}
+
+		dumpedSections := make([]string, len(namedSections))
+		for i, s := range namedSections {
+			dumpedSections[i] = dump(s)
+		}
+
+		contents = fmt.Sprintf("%v---\n", strings.Join(dumpedSections, ""))
+	}
 	if err != nil {
 		return err
 	}
@@ -35,7 +82,9 @@ func open(d date) error {
 		}
 
 		fmt.Println(err.Error())
-		discard, err := confirm(false, "Discard changes?")
+
+		var discard bool
+		discard, err = confirm(false, "Discard changes?")
 		if err != nil {
 			return err
 		}
@@ -47,6 +96,7 @@ func open(d date) error {
 		if err != nil {
 			return err
 		}
+
 		_, err = parse(contents)
 	}
 	if err != nil {
@@ -56,55 +106,60 @@ func open(d date) error {
 	return storage.store(d, contents)
 }
 
-var editorEnvVars = []string{"VISUAL", "EDITOR"}
+func read(contents string) error {
+	filename := tempFilename("memo")
 
-func edit(contents string) (string, error) {
-	f, err := ioutil.TempFile("", "memo")
+	err := ioutil.WriteFile(filename, []byte(contents), 0444)
 	if err != nil {
-		return contents, err
+		return err
 	}
 
-	filename := f.Name()
-	f.Close()
-
-	err = ioutil.WriteFile(filename, []byte(contents), 0)
-	if err != nil {
-		return contents, err
-	}
-
-	editorCommand := ""
-
-	for _, envVar := range editorEnvVars {
-		if editorCommand != "" {
-			break
-		}
-		editorCommand = os.Getenv(envVar)
-	}
-
-	if editorCommand == "" {
-		return contents, fmt.Errorf(
-			"open: no editor specified in $%v",
-			strings.Join(editorEnvVars, ", $"),
-		)
-	}
-
-	cmd := exec.Command(editorCommand, f.Name())
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-
-	err = cmd.Run()
-	if err != nil {
-		return contents, err
-	}
-
-	b, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return contents, err
-	}
-
-	return string(b), nil
+	return editor(filename)
 }
 
-func blank(d date) (string, error) {
-	return "---\n", nil
+func edit(contents string) (string, error) {
+	filename := tempFilename("memo")
+
+	err := ioutil.WriteFile(filename, []byte(contents), 0644)
+	if err != nil {
+		return contents, err
+	}
+
+	err = editor(filename)
+	if err != nil {
+		return contents, err
+	}
+
+	bytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return contents, err
+	}
+
+	return string(bytes), nil
+}
+
+var hex = []rune("0123456789abcdef")
+
+func tempFilename(base string) string {
+	runes := make([]rune, 8)
+	for i := range runes {
+		runes[i] = hex[rand.Int63()%16]
+	}
+	basename := fmt.Sprintf("%v-%v", base, string(runes))
+	return path.Join(os.TempDir(), basename)
+}
+
+func editor(filename string) error {
+	editorCommand := os.Getenv("VISUAL")
+	if editorCommand == "" {
+		editorCommand = os.Getenv("EDITOR")
+	}
+	if editorCommand == "" {
+		return fmt.Errorf("open: no editor specified in $VISUAL, $EDITOR")
+	}
+
+	cmd := exec.Command(editorCommand, filename)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	return cmd.Run()
 }

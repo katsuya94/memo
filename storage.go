@@ -8,13 +8,14 @@ import (
 )
 
 type storage interface {
-	retrive(date) (string, error)
+	retrieve(date) (string, error)
 	store(date, string) error
+	mostRecent() (date, error)
 }
 
 type localStorage struct{}
 
-func (*localStorage) retrive(d date) (string, error) {
+func (*localStorage) retrieve(d date) (string, error) {
 	dir, err := memoDir()
 	if err != nil {
 		return "", err
@@ -37,6 +38,26 @@ func (*localStorage) store(d date, contents string) error {
 
 	path := path.Join(dir, d.String())
 	return ioutil.WriteFile(path, []byte(contents), 0644)
+}
+
+func (*localStorage) mostRecent() (date, error) {
+	dir, err := memoDir()
+	if err != nil {
+		return date{}, err
+	}
+
+	fileInfos, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return date{}, err
+	}
+
+	mostRecentFilename := fileInfos[len(fileInfos)-1].Name()
+	d, err := parseDate(mostRecentFilename)
+	if err != nil {
+		return date{}, err
+	}
+
+	return d, nil
 }
 
 func memoDir() (string, error) {

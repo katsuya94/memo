@@ -30,6 +30,17 @@ func (d date) String() string {
 	return time.Time(d).Format("2006-01-02")
 }
 
+func parseDate(s string) (date, error) {
+	var year, month, day int
+
+	_, err := fmt.Sscanf(s, "%d-%d-%d", &year, &month, &day)
+	if err != nil {
+		return date{}, err
+	}
+
+	return newDate(year, time.Month(month), day), nil
+}
+
 type command interface {
 	run(...string) error
 	usage() string
