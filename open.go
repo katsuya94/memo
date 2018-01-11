@@ -40,9 +40,13 @@ func open(d, today date) error {
 			return err
 		}
 
-		mostRecentContents, err = storage.retrieve(mostRecentDate)
-		if err != nil {
-			return err
+		if mostRecentDate == zeroDate { // if the date is empty
+			mostRecentContents = ""
+		} else {
+			mostRecentContents, err = storage.retrieve(mostRecentDate)
+			if err != nil {
+				return err
+			}
 		}
 
 		sections, err = parse(mostRecentContents)

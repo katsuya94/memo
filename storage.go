@@ -43,18 +43,22 @@ func (*localStorage) store(d date, contents string) error {
 func (*localStorage) mostRecent() (date, error) {
 	dir, err := memoDir()
 	if err != nil {
-		return date{}, err
+		return zeroDate, err
 	}
 
 	fileInfos, err := ioutil.ReadDir(dir)
 	if err != nil {
-		return date{}, err
+		return zeroDate, err
+	}
+
+	if len(fileInfos) == 0 {
+		return zeroDate, nil
 	}
 
 	mostRecentFilename := fileInfos[len(fileInfos)-1].Name()
 	d, err := parseDate(mostRecentFilename)
 	if err != nil {
-		return date{}, err
+		return zeroDate, err
 	}
 
 	return d, nil

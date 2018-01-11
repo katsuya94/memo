@@ -10,6 +10,8 @@ import (
 
 type date time.Time
 
+var zeroDate = date{}
+
 func newDate(year int, month time.Month, day int) date {
 	return date(time.Date(year, month, day, 0, 0, 0, 0, &time.Location{}))
 }
