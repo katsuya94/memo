@@ -62,7 +62,7 @@ func parse(contents string) ([]section, error) {
 
 var (
 	sectionHeaderRegexp     = regexp.MustCompile(`^ {0,3}(\*{3}|-{3}|_{3})`)
-	sectionHeaderInfoRegexp = regexp.MustCompile(`^ {0,3}(\*{3}|-{3}|_{3}) *([0-9a-zA-Z-]+|(\+[0-9a-zA-Z-]+ *)*) *$`)
+	sectionHeaderInfoRegexp = regexp.MustCompile(`^ {0,3}(\*{3}|-{3}|_{3}) *([0-9a-zA-Z_-]+|(\+[0-9a-zA-Z_-]+ *)*) *$`)
 )
 
 func sectionHeader(line string) (sectionInfo, bool, error) {
@@ -74,6 +74,10 @@ func sectionHeader(line string) (sectionInfo, bool, error) {
 		}
 
 		match := sectionHeaderInfoRegexp.FindStringSubmatch(line)
+
+		if match[2] == "" {
+			return info, true, nil
+		}
 
 		if match[2][0] == '+' {
 			tokens := strings.Split(match[2], " ")
