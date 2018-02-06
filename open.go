@@ -66,7 +66,11 @@ func open(d, today date) error {
 			dumpedSections[i] = dump(s)
 		}
 
-		contents = fmt.Sprintf("%v---\n", strings.Join(dumpedSections, ""))
+		if len(dumpedSections) == 0 {
+			contents = "---\n"
+		} else {
+			contents = strings.Join(dumpedSections, "")
+		}
 	}
 	if err != nil {
 		return err
