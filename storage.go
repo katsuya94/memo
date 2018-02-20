@@ -5,6 +5,11 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"regexp"
+)
+
+var (
+	memoFilenameRegexp = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}`)
 )
 
 type storage interface {
@@ -51,11 +56,18 @@ func (*localStorage) mostRecent() (date, error) {
 		return zeroDate, err
 	}
 
-	if len(fileInfos) == 0 {
+	var filteredFileInfos []os.FileInfo
+	for _, fileInfo := range fileInfos {
+		if memoFilenameRegexp.MatchString(fileInfo.Name()) {
+			filteredFileInfos = append(filteredFileInfos, fileInfo)
+		}
+	}
+
+	if len(filteredFileInfos) == 0 {
 		return zeroDate, nil
 	}
 
-	mostRecentFilename := fileInfos[len(fileInfos)-1].Name()
+	mostRecentFilename := filteredFileInfos[len(filteredFileInfos)-1].Name()
 	d, err := parseDate(mostRecentFilename)
 	if err != nil {
 		return zeroDate, err
