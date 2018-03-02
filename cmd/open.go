@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +17,4 @@ func NewCommandOpen() *cobra.Command {
 }
 
 func CmdOpen(cmd *cobra.Command, args []string) {
-	fmt.Println(ProfileName)
-	fmt.Println(Profile)
-	fmt.Println(args)
 }

@@ -10,16 +10,18 @@ type Profile struct {
 	SecondaryStorage Storage
 }
 
-type storageConfig struct {
-	Name    string
-	Options interface{}
-}
-
 func (*Profile) UnmarshalJSON(b []byte) error {
-	var config struct {
+	type storageConfig struct {
+		Type    string
+		Options interface{}
+	}
+
+	type profileConfig struct {
 		PrimaryStorage   storageConfig
 		SecondaryStorage storageConfig
 	}
+
+	var config profileConfig
 	json.Unmarshal(b, &config)
 	fmt.Println(config.PrimaryStorage)
 	fmt.Println(config.SecondaryStorage)

@@ -7,8 +7,8 @@ import (
 
 var (
 	Home        string
-	ProfileName string
 	Profile     core.Profile
+	ProfileName string
 )
 
 func NewDefaultCommand() *cobra.Command {
@@ -23,7 +23,7 @@ Find more information at https://github.com/katsuya94/memo.
 		PersistentPreRun: Setup,
 	}
 
-	c.PersistentFlags().StringVarP(&ProfileName, "profile", "p", "default", "name of the profile to use")
+	c.PersistentFlags().StringVarP(&ProfileName, "profile", "p", "", "name of the profile to use")
 
 	c.AddCommand(NewCommandOpen())
 
