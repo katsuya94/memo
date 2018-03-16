@@ -13,14 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Setup(cmd *cobra.Command, args []string) {
-	if err := setup(); err != nil {
-		fmt.Fprintf(os.Stderr, "memo: %v\n", err)
-		os.Exit(1)
-	}
-}
-
-func setup() error {
+func Setup(cmd *cobra.Command, args []string) error {
 	if err := setHome(); err != nil {
 		return err
 	}
@@ -161,18 +154,18 @@ func normalizePath(p string) string {
 	}
 }
 
-func createLocalStorage(p string) *storage.LocalStorage {
+func createLocalStorage(p string) core.Storage {
 	return &storage.LocalStorage{
 		Path: normalizePath(p),
 	}
 }
 
-func createEncryptedLocalStorage(p string) *storage.EncryptedLocalStorage {
+func createEncryptedLocalStorage(p string) core.Storage {
 	return &storage.EncryptedLocalStorage{
 		Path: normalizePath(p),
 	}
 }
 
-func createGoogleCloudStorage() *storage.GoogleCloudStorage {
+func createGoogleCloudStorage() core.Storage {
 	return &storage.GoogleCloudStorage{}
 }

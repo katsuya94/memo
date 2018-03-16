@@ -19,9 +19,9 @@ func NewDefaultCommand() *cobra.Command {
 
 Find more information at https://github.com/katsuya94/memo.
 `,
-		Args:             cobra.MaximumNArgs(1),
-		Run:              CmdOpen,
-		PersistentPreRun: Setup,
+		Args:              cobra.ArbitraryArgs,
+		RunE:              CmdOpen,
+		PersistentPreRunE: Setup,
 	}
 
 	c.PersistentFlags().StringVarP(&ProfileName, "profile", "p", "", "name of the profile to use")
