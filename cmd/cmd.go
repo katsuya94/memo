@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/katsuya94/memo/core"
+	"github.com/katsuya94/memo/editor"
 	"github.com/spf13/cobra"
 )
 
@@ -9,6 +10,7 @@ var (
 	Home        string
 	Profile     core.Profile
 	ProfileName string
+	Editor      editor.Editor
 )
 
 func NewDefaultCommand() *cobra.Command {

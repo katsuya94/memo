@@ -31,6 +31,10 @@ func (d Date) Day() int {
 	return time.Time(d).Day()
 }
 
+func (d Date) Before(other Date) bool {
+	return time.Time(d).Before(time.Time(other))
+}
+
 func (d Date) String() string {
 	return fmt.Sprintf("%v-%v-%v", d.Year(), d.Month(), d.Day())
 }

@@ -37,7 +37,22 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return Profile.Open(d)
+	memo, err := Profile.Get(d)
+	if err != nil {
+		return err
+	}
+
+	contents, err := Editor.Edit(memo.Contents())
+	if err != nil {
+		return err
+	}
+
+	err = memo.SetContents(contents)
+	if err != nil {
+		return err
+	}
+
+	return Profile.Put(d, memo)
 }
 
 var dateFormats = []string{
