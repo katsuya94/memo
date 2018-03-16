@@ -13,18 +13,18 @@ var (
 
 func NewDefaultCommand() *cobra.Command {
 	c := &cobra.Command{
-		Use:   "memo",
+		Use:   "memo [date]",
 		Short: "memo is a flexible utility for taking structured, searchable notes",
 		Long: `memo is a flexible utility for taking structured, searchable notes.
 
 Find more information at https://github.com/katsuya94/memo.
 `,
+		Args:             cobra.MaximumNArgs(1),
 		Run:              CmdOpen,
 		PersistentPreRun: Setup,
 	}
 
 	c.PersistentFlags().StringVarP(&ProfileName, "profile", "p", "", "name of the profile to use")
-
 	c.AddCommand(NewCommandOpen())
 
 	return c
