@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"bufio"
-	"bytes"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/katsuya94/memo/editor"
@@ -95,33 +92,6 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 	return Profile.Put(d, memo)
 }
 
-func confirm(recommended bool, message string) (bool, error) {
-	if recommended {
-		fmt.Printf("%v (Y/n) ", message)
-	} else {
-		fmt.Printf("%v (y/N) ", message)
-	}
-
-	b, _, err := bufio.NewReader(os.Stdin).ReadLine()
-	if err != nil {
-		return recommended, err
-	}
-
-	b = bytes.TrimSpace(b)
-	b = bytes.ToLower(b)
-
-	switch string(b) {
-	case "":
-		return recommended, nil
-	case "n":
-		return false, nil
-	case "y":
-		return true, nil
-	default:
-		return confirm(recommended, "Please type y or n.")
-	}
-}
-
 var dateFormats = []string{
 	"2006-1-2",
 	"1/2/2006",
@@ -143,9 +113,15 @@ var dateFormats = []string{
 func parseDate(s string) (util.Date, error) {
 	for _, format := range dateFormats {
 		t, err := time.Parse(format, s)
-		if err == nil {
-			return util.NewDateFromTime(t), nil
+		if err != nil {
+			continue
 		}
+
+		if t.Year() == 0 {
+			t = t.AddDate(time.Now().Year(), 0, 0)
+		}
+
+		return util.NewDateFromTime(t), nil
 	}
 	return util.Date{}, fmt.Errorf("invalid date format: %v", s)
 }
