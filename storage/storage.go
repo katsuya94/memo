@@ -5,6 +5,6 @@ import (
 )
 
 type Storage interface {
-	Get(util.Date) (Memo, error)
-	Store(util.Date, Memo) error
+	Get(util.Date) (util.Memo, error)
+	Put(util.Date, util.Memo) error
 }

@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/katsuya94/memo/core"
 	"github.com/katsuya94/memo/editor"
 	"github.com/katsuya94/memo/util"
 	"github.com/spf13/cobra"
@@ -48,7 +47,7 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(memo) == 0 {
-		memo = append(memo, core.Section{})
+		memo = append(memo, util.Section{})
 	}
 
 	e, err := editor.NewEditor()
@@ -56,7 +55,7 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err = core.WriteMemo(memo, e); err != nil {
+	if err = util.WriteMemo(memo, e); err != nil {
 		return err
 	}
 	if err = e.Close(); err != nil {
@@ -68,11 +67,11 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-		if memo, err = core.ReadMemo(e); err == nil {
+		if memo, err = util.ReadMemo(e); err == nil {
 			break
 		}
 
-		if _, ok := err.(core.MemoFormatError); !ok {
+		if _, ok := err.(util.MemoFormatError); !ok {
 			return err
 		}
 

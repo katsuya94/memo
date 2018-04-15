@@ -8,7 +8,6 @@ import (
 	"os/user"
 	"path"
 
-	"github.com/katsuya94/memo/core"
 	"github.com/katsuya94/memo/storage"
 	"github.com/spf13/cobra"
 )
@@ -112,7 +111,7 @@ func configureProfile(config profileConfig) error {
 	return nil
 }
 
-func createStorage(config storageConfig) (core.Storage, error) {
+func createStorage(config storageConfig) (storage.Storage, error) {
 	b, err := json.Marshal(config.Options)
 	if err != nil {
 		return nil, err
@@ -154,18 +153,18 @@ func normalizePath(p string) string {
 	}
 }
 
-func createLocalStorage(p string) core.Storage {
+func createLocalStorage(p string) storage.Storage {
 	return &storage.LocalStorage{
 		Path: normalizePath(p),
 	}
 }
 
-func createEncryptedLocalStorage(p string) core.Storage {
+func createEncryptedLocalStorage(p string) storage.Storage {
 	return &storage.EncryptedLocalStorage{
 		Path: normalizePath(p),
 	}
 }
 
-func createGoogleCloudStorage() core.Storage {
+func createGoogleCloudStorage() storage.Storage {
 	return &storage.GoogleCloudStorage{}
 }
