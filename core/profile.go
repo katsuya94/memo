@@ -1,17 +1,19 @@
 package core
 
 import (
-	"fmt"
-
+	"github.com/katsuya94/memo/storage"
 	"github.com/katsuya94/memo/util"
 )
 
 type Profile struct {
-	PrimaryStorage   Storage
-	SecondaryStorage Storage
+	PrimaryStorage   storage.Storage
+	SecondaryStorage storage.Storage
 }
 
-func (p Profile) Open(d util.Date) error {
-	fmt.Println(d)
-	return nil
+func (p Profile) Get(d util.Date) (Memo, error) {
+	return p.PrimaryStorage.Get(d)
+}
+
+func (p Profile) Put(d util.Date, memo Memo) error {
+	return p.PrimaryStorage.Put(d, memo)
 }

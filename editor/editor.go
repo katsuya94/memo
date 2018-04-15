@@ -2,48 +2,55 @@ package editor
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path"
 )
 
-type Editor struct{}
-
-func (e Editor) Read(s string) error {
-	path := temporaryFilePath()
-
-	err := ioutil.WriteFile(path, []byte(s), 0444)
-	if err != nil {
-		return err
-	}
-
-	return e.run(path)
+type Editor struct {
+	path string
+	file *os.File
 }
 
-func (e Editor) Edit(s string) (string, error) {
-	path := temporaryFilePath()
+func NewEditor() (Editor, error) {
+	var (
+		e   = Editor{}
+		err error
+	)
+	e.path = temporaryFilePath()
 
-	err := ioutil.WriteFile(path, []byte(s), 0644)
+	e.file, err = os.OpenFile(e.path, os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		return s, err
+		return e, err
 	}
 
-	err = e.run(path)
-	if err != nil {
-		return s, err
-	}
-
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return s, err
-	}
-
-	return string(b), nil
+	return e, nil
 }
 
-func (e Editor) run(path string) error {
+func (e Editor) Write(p []byte) (int, error) {
+	return e.file.Write(p)
+}
+
+func (e Editor) Read(p []byte) (int, error) {
+	return e.file.Read(p)
+}
+
+func (e Editor) Close() error {
+	return e.file.Close()
+}
+
+func (e *Editor) Launch(readonly bool) error {
+	var (
+		err error
+	)
+
+	if readonly {
+		if err = e.file.Chmod(0400); err != nil {
+			return err
+		}
+	}
+
 	editorCommand := os.Getenv("VISUAL")
 	if editorCommand == "" {
 		editorCommand = os.Getenv("EDITOR")
@@ -52,19 +59,29 @@ func (e Editor) run(path string) error {
 		return fmt.Errorf("open: no editor specified in $VISUAL, $EDITOR")
 	}
 
-	cmd := exec.Command(editorCommand, path)
+	cmd := exec.Command(editorCommand, e.path)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
-	return cmd.Run()
+
+	if err = cmd.Run(); err != nil {
+		return err
+	}
+
+	e.file, err = os.Open(e.path)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-var hexRunes = []rune("0123456789abcdef")
+var hexBytes = []byte("0123456789abcdef")
 
 func temporaryFilePath() string {
-	runes := make([]rune, 8)
-	for i := range runes {
-		runes[i] = hexRunes[rand.Int63()%16]
+	b := make([]byte, 8)
+	for i := range b {
+		b[i] = hexBytes[rand.Int63()%16]
 	}
-	basename := fmt.Sprintf("%v-%v", "memo", string(runes))
+	basename := fmt.Sprintf("%v-%v", "memo", string(b))
 	return path.Join(os.TempDir(), basename)
 }
