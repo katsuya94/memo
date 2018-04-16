@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -89,7 +90,14 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return Profile.Put(d, memo)
+	processedMemo := util.Memo{}
+	for _, s := range memo {
+		if !(s.Name == "" && len(s.Tags) == 0 && len(bytes.TrimSpace(s.Body)) == 0) {
+			processedMemo = append(processedMemo, s)
+		}
+	}
+
+	return Profile.Put(d, processedMemo)
 }
 
 var dateFormats = []string{

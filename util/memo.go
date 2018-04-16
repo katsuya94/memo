@@ -112,8 +112,6 @@ func WriteMemo(m Memo, wr io.Writer) error {
 		if _, err := w.Write(s.Body); err != nil {
 			return err
 		}
-
-		fmt.Fprint(w, "\n")
 	}
 
 	if err := w.Flush(); err != nil {
