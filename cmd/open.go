@@ -48,46 +48,11 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 		memo = append(memo, util.Section{})
 	}
 
-	e, err := editor.NewEditor()
+	memo, ok, err := editMemo(memo)
 	if err != nil {
 		return err
-	}
-
-	if err = util.WriteMemo(memo, e); err != nil {
-		return err
-	}
-	if err = e.Close(); err != nil {
-		return err
-	}
-
-	for {
-		if err = e.Launch(false); err != nil {
-			return err
-		}
-
-		if memo, err = util.ReadMemo(e); err == nil {
-			break
-		}
-
-		if _, ok := err.(util.MemoFormatError); !ok {
-			return err
-		}
-
-		fmt.Println(err)
-
-		if err = e.Close(); err != nil {
-			return err
-		}
-
-		if ok, err := confirm(false, "Discard changes?"); err != nil {
-			return err
-		} else if ok {
-			return nil
-		}
-	}
-
-	if err = e.Close(); err != nil {
-		return err
+	} else if !ok {
+		return nil
 	}
 
 	processedMemo := util.Memo{}
@@ -98,6 +63,52 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 	}
 
 	return Profile.Put(d, processedMemo)
+}
+
+func editMemo(memo util.Memo) (util.Memo, bool, error) {
+	e, err := editor.NewEditor()
+	if err != nil {
+		return nil, false, err
+	}
+
+	if err = util.WriteMemo(memo, e); err != nil {
+		return nil, false, err
+	}
+	if err = e.Close(); err != nil {
+		return nil, false, err
+	}
+
+	for {
+		if err = e.Launch(false); err != nil {
+			return nil, false, err
+		}
+
+		if memo, err = util.ReadMemo(e); err == nil {
+			break
+		}
+
+		if _, ok := err.(util.MemoFormatError); !ok {
+			return nil, false, err
+		}
+
+		fmt.Println(err)
+
+		if err = e.Close(); err != nil {
+			return nil, false, err
+		}
+
+		if ok, err := confirm(false, "Discard changes?"); err != nil {
+			return nil, false, err
+		} else if ok {
+			return nil, false, nil
+		}
+	}
+
+	if err = e.Close(); err != nil {
+		return nil, false, err
+	}
+
+	return memo, true, nil
 }
 
 var dateFormats = []string{

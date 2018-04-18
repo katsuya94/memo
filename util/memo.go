@@ -22,6 +22,15 @@ type Section struct {
 
 type Memo []Section
 
+func (m Memo) HasNamedSection(name string) bool {
+	for _, s := range m {
+		if s.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
 type MemoFormatError struct {
 	line    int
 	message string
