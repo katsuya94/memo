@@ -11,12 +11,17 @@ func Today() Date {
 	return NewDateFromTime(time.Now())
 }
 
+func NewDate(year int, month int, day int) Date {
+	return Date(time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC))
+}
+
 func NewDateFromTime(t time.Time) Date {
 	return NewDate(t.Year(), int(t.Month()), t.Day())
 }
 
-func NewDate(year int, month int, day int) Date {
-	return Date(time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC))
+func NewDateFromString(s string) Date {
+	t, _ := time.Parse("2006-01-02", s)
+	return NewDateFromTime(t)
 }
 
 func (d Date) Year() int {

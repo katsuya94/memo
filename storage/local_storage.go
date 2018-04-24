@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"io/ioutil"
 	"os"
 	"path"
 
@@ -46,4 +47,16 @@ func (s LocalStorage) Put(d util.Date, memo util.Memo) error {
 	}
 
 	return f.Close()
+}
+
+func (s LocalStorage) List() ([]util.Date, error) {
+	var dates []util.Date
+	fileinfos, err := ioutil.ReadDir(s.Path)
+	if err != nil {
+		return dates, err
+	}
+	for _, fileinfo := range fileinfos {
+		dates = append(dates, util.NewDateFromString(fileinfo.Name()))
+	}
+	return dates, nil
 }

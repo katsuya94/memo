@@ -56,11 +56,6 @@ func CmdOpen(cmd *cobra.Command, args []string) error {
 	}
 
 	processedMemo := util.Memo{}
-	for _, s := range memo {
-		if !(s.Name == "" && len(s.Tags) == 0 && len(bytes.TrimSpace(s.Body)) == 0) {
-			processedMemo = append(processedMemo, s)
-		}
-	}
 
 	return Profile.Put(d, processedMemo)
 }
@@ -104,11 +99,23 @@ func editMemo(memo util.Memo) (util.Memo, bool, error) {
 		}
 	}
 
+	memo = filterEmptySections(memo)
+
 	if err = e.Close(); err != nil {
 		return nil, false, err
 	}
 
 	return memo, true, nil
+}
+
+func filterEmptySections(memo util.Memo) util.Memo {
+	var filtered util.Memo
+	for _, s := range memo {
+		if !(s.Name == "" && len(s.Tags) == 0 && len(bytes.TrimSpace(s.Body)) == 0) {
+			filtered = append(filtered, s)
+		}
+	}
+	return filtered
 }
 
 var dateFormats = []string{
