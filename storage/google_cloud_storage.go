@@ -13,3 +13,7 @@ func (GoogleCloudStorage) Get(d util.Date) (util.Memo, error) {
 func (GoogleCloudStorage) Put(d util.Date, memo util.Memo) error {
 	return nil
 }
+
+func (GoogleCloudStorage) List() ([]util.Date, error) {
+	return []util.Date{}, nil
+}

@@ -15,3 +15,7 @@ func (EncryptedLocalStorage) Get(d util.Date) (util.Memo, error) {
 func (EncryptedLocalStorage) Put(d util.Date, memo util.Memo) error {
 	return nil
 }
+
+func (EncryptedLocalStorage) List() ([]util.Date, error) {
+	return []util.Date{}, nil
+}
