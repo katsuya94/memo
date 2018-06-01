@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -19,9 +18,9 @@ func NewDateFromTime(t time.Time) Date {
 	return NewDate(t.Year(), int(t.Month()), t.Day())
 }
 
-func NewDateFromString(s string) Date {
-	t, _ := time.Parse("2006-01-02", s)
-	return NewDateFromTime(t)
+func NewDateFromString(s string) (Date, error) {
+	t, err := time.Parse("2006-01-02", s)
+	return NewDateFromTime(t), err
 }
 
 func (d Date) Year() int {
@@ -41,5 +40,5 @@ func (d Date) Before(other Date) bool {
 }
 
 func (d Date) String() string {
-	return fmt.Sprintf("%v-%v-%v", d.Year(), d.Month(), d.Day())
+	return time.Time(d).Format("2006-01-02")
 }
